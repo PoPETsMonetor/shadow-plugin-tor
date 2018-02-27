@@ -1,3 +1,6 @@
+# moneTor: modified script to support intermediaries and ledgers. All changes
+# marked with a "moneTor:" comment
+
 #!/usr/bin/env python2.7
 
 import os, sys, subprocess, argparse, time, shlex, shutil
@@ -20,12 +23,23 @@ NBRIDGEAUTHS = 0
 NCLIENTS = 100
 NBRIDGECLIENTS = 0
 
+# moneTor: add intermediary count
+NINTERMEDIARIES = 2
+
 NSERVERS = 10
-FWEB = 0.97
-FBULK = 0.03
-NPERF50K = 0.0
-NPERF1M = 0.0
-NPERF5M = 0.0
+
+# moneTor: split client-like nodes into premium/nonpremium
+FWEBNONPREM = 0.47
+FBULKNONPREM = 0.03
+NPERF50KNONPREM = 0.0
+NPERF1MNONPREM = 0.0
+NPERF5MNONPREM = 0.0
+
+FWEBPREMIUM = 0.47
+FBULKPREMIUM = 0.03
+NPERF50KPREMIUM = 0.0
+NPERF1MPREMIUM = 0.0
+NPERF5MPREMIUM = 0.0
 
 class Relay():
     def __init__(self, ip, bw, isExit=False, isGuard=False):
@@ -172,11 +186,24 @@ def main():
     ap.add_argument('--nbridges', action="store", type=int, dest="nbridges", help="number N of total bridges for the generated topology", metavar='N', default=NBRIDGES)
     ap.add_argument('--nclients', action="store", type=int, dest="nclients", help="number N of total clients for the generated topology", metavar='N', default=NCLIENTS)
     ap.add_argument('--nbridgeclients', action="store", type=int, dest="nbridgeclients", help="number N of total clients running with bridges for the generated topology", metavar='N', default=NBRIDGECLIENTS)
-    ap.add_argument('--fweb', action="store", type=float, dest="fweb", help="fraction F of web client connections", metavar='F', default=FWEB)
-    ap.add_argument('--fbulk', action="store", type=float, dest="fbulk", help="fraction F of bulk HTTP client connections", metavar='F', default=FBULK)
-    ap.add_argument('--nperf50k', action="store", type=float, dest="nperf50k", help="number N of 50KiB perf clients", metavar='F', default=NPERF50K)
-    ap.add_argument('--nperf1m', action="store", type=float, dest="nperf1m", help="number N of 1MiB perf clients", metavar='F', default=NPERF1M)
-    ap.add_argument('--nperf5m', action="store", type=float, dest="nperf5m", help="number N of 5MiB perf clients", metavar='F', default=NPERF5M)
+
+    # moneTor: added option for number of intermediaries
+    ap.add_argument('--nintermediaries', action="store", type=int, dest="nintermediaries", help="number N of total intermediaries for the generated topology", metavar='N', default=NINTERMEDIARIES)
+
+    # moneTor: client-like nodes which do not pay for premium bandwidth
+    ap.add_argument('--fwebnonprem', action="store", type=float, dest="fwebnonprem", help="fraction F of non-premium web client connections", metavar='F', default=FWEBNONPREM)
+    ap.add_argument('--fbulknonprem', action="store", type=float, dest="fbulknonprem", help="fraction F of non-premium bulk HTTP client connections", metavar='F', default=FBULKNONPREM)
+    ap.add_argument('--nperf50knonprem', action="store", type=float, dest="nperf50knonprem", help="number N of non-premium 50KiB perf clients", metavar='F', default=NPERF50KNONPREM)
+    ap.add_argument('--nperf1mnonprem', action="store", type=float, dest="nperf1mnonprem", help="number N of non-premium 1MiB perf clients", metavar='F', default=NPERF1MNONPREM)
+    ap.add_argument('--nperf5mnonprem', action="store", type=float, dest="nperf5mnonprem", help="number N of non-premium 5MiB perf clients", metavar='F', default=NPERF5MNONPREM)
+
+    # moneTor: client-like nodes that do pay for premium bandwidth
+    ap.add_argument('--fwebpremium', action="store", type=float, dest="fwebpremium", help="fraction F of premium web client connections", metavar='F', default=FWEBPREMIUM)
+    ap.add_argument('--fbulkpremium', action="store", type=float, dest="fbulkpremium", help="fraction F of premium bulk HTTP client connections", metavar='F', default=FBULKPREMIUM)
+    ap.add_argument('--nperf50kpremium', action="store", type=float, dest="nperf50kpremium", help="number N of premium 50KiB perf clients", metavar='F', default=NPERF50KPREMIUM)
+    ap.add_argument('--nperf1mpremium', action="store", type=float, dest="nperf1mpremium", help="number N of premium 1MiB perf clients", metavar='F', default=NPERF1MPREMIUM)
+    ap.add_argument('--nperf5mpremium', action="store", type=float, dest="nperf5mpremium", help="number N of premium 5MiB perf clients", metavar='F', default=NPERF5MPREMIUM)
+
     ap.add_argument('--nservers', action="store", type=int, dest="nservers", help="number N of fileservers", metavar='N', default=NSERVERS)
     ap.add_argument('--geoippath', action="store", dest="geoippath", help="path to geoip file, needed to convert IPs to cluster codes", default=INSTALLPREFIX+"share/geoip")
 
@@ -190,10 +217,14 @@ def main():
     # get arguments, accessible with args.value
     args = ap.parse_args()
 
-    totalclientf = args.fweb + args.fbulk
+    totalclientf = args.fwebnonprem + args.fwebpremium + args.fbulknonprem + args.fbulknonprem
     if totalclientf != 1.0:
         log("client fractions do not add to 1.0! please fix arguments...")
         return
+
+    # moneTor: make sure there are not more intermediaries than relays
+    if args.nintermediaries > args.nrelays:
+        log("more intermediaries than relays! please fix arguments...")
 
     # fixup paths from user
     args.prefix = os.path.abspath(os.path.expanduser(args.prefix))
@@ -261,6 +292,21 @@ def generate(args):
     exits_nodes.reverse()
     middles_nodes.reverse()
 
+    # moneTor: Steal intermediaries from the fastest guard and middle node
+    # lists. Only touch exit and exit guards if we run out
+    intermediaries_nodes = []
+    for i in range(args.nintermediaries):
+        if guards_nodes and guards_nodes[0].bwrate > middles_nodes[0].bwrate:
+            intermediaries_nodes += [guards_nodes.pop(0)]
+        elif middles_nodes:
+            intermediaries_nodes += [middles_nodes.pop(0)]
+        elif exits_nodes:
+            intermediaries_nodes += [exits_nodes.pop(0)]
+        elif exitguards_nodes:
+            intermediaries_nodes += [exitguards_nodes.pop(0)]
+        else:
+            log("ran out of relays to turn into intermediaries. possible rounding error")
+
     servers = getServers(geoentries, args.alexa)
     clientCountryCodes = getClientCountryChoices(args.connectingusers)
 
@@ -272,6 +318,7 @@ def generate(args):
         for r in guards_nodes: print >>f, r.toCSV()
         for r in exits_nodes: print >>f, r.toCSV()
         for r in middles_nodes: print >>f, r.toCSV()
+        for r in intermediaries_nodes: print >>f, r.toCSV()
 
     # build the XML
     root = etree.Element("shadow")
@@ -320,6 +367,8 @@ def generate(args):
     with open("authgen.torrc", 'w') as fauthgen: print >>fauthgen, "DirServer test 127.0.0.1:5000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000\nORPort 5000\n"
     with open("authgen.pw", 'w') as fauthgenpw: print >>fauthgenpw, "shadowprivatenetwork\n"
     starttime = 5
+
+    # moneTor: first authority is always a ledger
     i = 1
     while i <= args.nauths:
         auth = []
@@ -331,8 +380,12 @@ def generate(args):
         #authority = guards_nodes.pop()
         #torargs = "{0} -f tor.authority.torrc --BandwidthRate {1} --BandwidthBurst {2}".format(default_tor_args, authority.getBWRateArg(), authority.getBWBurstArg()) # in bytes
         #addRelayToXML(root, starttime, torargs, None, None, name, authority.download, authority.upload, authority.ip, authority.code)
+        if i == 1:
+            torargs = "{0} -f conf/tor.ledger.torrc".format(default_tor_args)
+        else:
+            torargs = "{0} -f conf/tor.authority.torrc".format(default_tor_args)
+
         authority = guards_nodes.pop()
-        torargs = "{0} -f conf/tor.authority.torrc".format(default_tor_args)
         addRelayToXML(root, starttime, torargs, None, name, download=6400, upload=6400)
 
         # generate keys for tor
@@ -385,7 +438,7 @@ def generate(args):
             i += 1
 
     # boot relays equally spread out between 1 and 11 minutes
-    secondsPerRelay = 600.0 / (len(exitguards_nodes) + len(exits_nodes) + len(guards_nodes) + len(middles_nodes))
+    secondsPerRelay = 600.0 / (len(exitguards_nodes) + len(exits_nodes) + len(guards_nodes) + len(middles_nodes) + len(intermediaries_nodes))
     relayStartTime = 60.0 # minute 1
 
     # exitguard relays
@@ -468,18 +521,44 @@ def generate(args):
         relayStartTime += secondsPerRelay
         i += 1
 
+    # moneTor: intermediary relays
+    i = 1
+    for r in intermediaries_nodes:
+        name = "relayintermediary{0}".format(i)
+        os.makedirs(name)
+        os.chdir(name)
+        rc, fp = getfp(args, '../authgen.torrc', name)
+        if rc != 0: return rc
+        os.chdir("..")
+        v3bwfile.write("node_id=${0}\tbw={1}\tnick={2}\n".format(fp.replace(" ", ""), r.getBWConsensusArg(), name))
+        starttime = "{0}".format(int(round(relayStartTime)))
+        torargs = "{0} -f conf/tor.intermediary.torrc --BandwidthRate {1} --BandwidthBurst {2}".format(default_tor_args, r.getBWRateArg(), r.getBWBurstArg()) # in bytes
+        addRelayToXML(root, starttime, torargs, None, name, r.download, r.upload, r.ip, r.code)
+        relayStartTime += secondsPerRelay
+        i += 1
+
     v3bwfile.close()
     os.chdir("../..") # move out of initdata dir
 
-    # clients
-    nbulkclients = int(args.fbulk * args.nclients)
-    nwebclients = int(args.nclients - nbulkclients)
-    nperf50kclients = int(args.nperf50k)
-    nperf1mclients = int(args.nperf1m)
-    nperf5mclients = int(args.nperf5m)
+    # moneTor: nonpremium and premium clients
+    nbulkclientsnonprem = int(args.fbulknonprem * args.nclients)
+    nwebclientsnonprem = int(args.nclients - nbulkclientsnonprem)
+    nperf50kclientsnonprem = int(args.nperf50knonprem)
+    nperf1mclientsnonprem = int(args.nperf1mnonprem)
+    nperf5mclientsnonprem = int(args.nperf5mnonprem)
+
+    nbulkclientspremium = int(args.fbulkpremium * args.nclients)
+    nwebclientspremium = int(args.nclients - nbulkclientspremium)
+    nperf50kclientspremium = int(args.nperf50kpremium)
+    nperf1mclientspremium = int(args.nperf1mpremium)
+    nperf5mclientspremium = int(args.nperf5mpremium)
 
     # boot clients equally spread out between 15 and 25 minutes
-    secondsPerClient = 600.0 / (nbulkclients+nwebclients+nperf50kclients+nperf1mclients+nperf5mclients)
+    secondsPerClient = 600.0 / (nbulkclientsnonprem + nbulkclientspremium +
+                                nwebclientsnonprem + nwebclientspremium +
+                                nperf50kclientsnonprem + nperf50kclientspremium +
+                                nperf1mclientsnonprem + nperf1mclientspremium +
+                                nperf5mclientsnonprem + nperf5mclientspremium)
     clientStartTime = 900.0 # minute 15
 
     # clients are separated into bulk/web downloaders who always download their file type
@@ -494,11 +573,13 @@ def generate(args):
         clientStartTime += secondsPerClient
         i += 1
 
+    # moneTor: non-premium clients
+
     i = 1
-    while i <= nwebclients:
-        name = "webclient{0}".format(i)
+    while i <= nwebclientsnonprem:
+        name = "webclientnonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
-        torargs = "{0} -f conf/tor.client.torrc".format(default_tor_args) # in bytes
+        torargs = "{0} -f conf/tor.clientnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torwebclient.graphml.xml"
 
         addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
@@ -507,10 +588,10 @@ def generate(args):
         i += 1
 
     i = 1
-    while i <= nbulkclients:
-        name = "bulkclient{0}".format(i)
+    while i <= nbulkclientsnonprem:
+        name = "bulkclientnonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
-        torargs = "{0} -f conf/tor.client.torrc".format(default_tor_args) # in bytes
+        torargs = "{0} -f conf/tor.clientnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torbulkclient.graphml.xml"
 
         addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
@@ -519,10 +600,10 @@ def generate(args):
         i += 1
 
     i = 1
-    while i <= nperf50kclients:
-        name = "perf50kclient{0}".format(i)
+    while i <= nperf50kclientsnonprem:
+        name = "perf50kclientnonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
-        torargs = "{0} -f conf/tor.torperf.torrc".format(default_tor_args) # in bytes
+        torargs = "{0} -f conf/tor.torperfnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf50kclient.graphml.xml"
 
         addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
@@ -531,10 +612,10 @@ def generate(args):
         i += 1
 
     i = 1
-    while i <= nperf1mclients:
-        name = "perf1mclient{0}".format(i)
+    while i <= nperf1mclientsnonprem:
+        name = "perf1mclientnonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
-        torargs = "{0} -f conf/tor.torperf.torrc".format(default_tor_args) # in bytes
+        torargs = "{0} -f conf/tor.torperfnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf1mclient.graphml.xml"
 
         addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
@@ -543,16 +624,79 @@ def generate(args):
         i += 1
 
     i = 1
-    while i <= nperf5mclients:
-        name = "perf5mclient{0}".format(i)
+    while i <= nperf5mclientsnonprem:
+        name = "perf5mclientnonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
-        torargs = "{0} -f conf/tor.torperf.torrc".format(default_tor_args) # in bytes
+        torargs = "{0} -f conf/tor.torperfnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf5mclient.graphml.xml"
 
         addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
 
         clientStartTime += secondsPerClient
         i += 1
+
+    # moneTor: premium clients
+
+    i = 1
+    while i <= nwebclientspremium:
+        name = "webclientpremium{0}".format(i)
+        starttime = "{0}".format(int(round(clientStartTime)))
+        torargs = "{0} -f conf/tor.clientpremium.torrc".format(default_tor_args) # in bytes
+        tgenargs = "conf/tgen.torwebclient.graphml.xml"
+
+        addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
+
+        clientStartTime += secondsPerClient
+        i += 1
+
+    i = 1
+    while i <= nbulkclientspremium:
+        name = "bulkclientpremium{0}".format(i)
+        starttime = "{0}".format(int(round(clientStartTime)))
+        torargs = "{0} -f conf/tor.clientpremium.torrc".format(default_tor_args) # in bytes
+        tgenargs = "conf/tgen.torbulkclient.graphml.xml"
+
+        addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
+
+        clientStartTime += secondsPerClient
+        i += 1
+
+    i = 1
+    while i <= nperf50kclientspremium:
+        name = "perf50kclientpremium{0}".format(i)
+        starttime = "{0}".format(int(round(clientStartTime)))
+        torargs = "{0} -f conf/tor.torperfpremium.torrc".format(default_tor_args) # in bytes
+        tgenargs = "conf/tgen.torperf50kclient.graphml.xml"
+
+        addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
+
+        clientStartTime += secondsPerClient
+        i += 1
+
+    i = 1
+    while i <= nperf1mclientspremium:
+        name = "perf1mclientpremium{0}".format(i)
+        starttime = "{0}".format(int(round(clientStartTime)))
+        torargs = "{0} -f conf/tor.torperfpremium.torrc".format(default_tor_args) # in bytes
+        tgenargs = "conf/tgen.torperf1mclient.graphml.xml"
+
+        addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
+
+        clientStartTime += secondsPerClient
+        i += 1
+
+    i = 1
+    while i <= nperf5mclientspremium:
+        name = "perf5mclientpremium{0}".format(i)
+        starttime = "{0}".format(int(round(clientStartTime)))
+        torargs = "{0} -f conf/tor.torperfpremium.torrc".format(default_tor_args) # in bytes
+        tgenargs = "conf/tgen.torperf5mclient.graphml.xml"
+
+        addRelayToXML(root, starttime, torargs, tgenargs, name, code=choice(clientCountryCodes))
+
+        clientStartTime += secondsPerClient
+        i += 1
+
 
     # generate torrc files now that we know the authorities and bridges
     bridges = None
@@ -828,7 +972,7 @@ def getRelays(relays, k, geoentries, descriptorpath, extrainfopath, validyear, v
                     elif parts[0] == "opt" and parts[1] == "fingerprint":
                         fingerprint = "".join(parts[2:])
                     elif parts[0] == "fingerprint":
-                        fingerprint = "".join(parts[1:])                        
+                        fingerprint = "".join(parts[1:])
 
                 if ip not in ipmap: continue
 
@@ -974,6 +1118,8 @@ def write_torrc_files(args, dirauths, bridgeauths, bridges, guardids, exitids):
         bridges_lines += "Bridge {0}:9111\n".format(bridge[fixme])
     '''
     auth_name_csv = ','.join([auth[0] for auth in dirauths])
+
+    # moneTor: configure MoneTorPublicMint for all nodes
     common = \
 '{0}\
 TestingTorNetwork 1\n\
@@ -997,7 +1143,8 @@ ExtraInfoStatistics 1\n\
 CircuitPriorityHalflife 30\n\
 PathBiasUseThreshold 10000\n\
 PathBiasCircThreshold 10000\n\
-ControlPort 9051\n'.format(auths_lines, auth_name_csv)
+ControlPort 9051\n\
+MoneTorPublicMint 1\n'.format(auths_lines, auth_name_csv)
     clients = \
 'ORPort 0\n\
 DirPort 0\n\
@@ -1039,21 +1186,34 @@ SocksPort 0\n' # note - also need exit policy
     maxdirty = 'MaxCircuitDirtiness 10 seconds\n'
     noguards = 'UseEntryGuards 0\n'
 
+    # moneTor: flags
+    ledger = 'Ledger 1\n'
+    intermediary = 'Intermediary 1\n'
+    enablepayment = 'EnablePayment 1\n'
+
+    # moneTor: set flags for each node type
     with open("conf/tor.common.torrc", 'wb') as f: print >>f, common
-    with open("conf/tor.authority.torrc", 'wb') as f: print >>f, authorities + epreject
+    with open("conf/tor.authority.torrc", 'wb') as f: print >>f, authorities + epreject + enablepayment
     if args.nbridgeauths > 0:
         with open("conf/tor.bridgeauthority.torrc", 'wb') as f: print >>f, bridgeauths + epreject
-    with open("conf/tor.exitguard.torrc", 'wb') as f: print >>f, relays + dirserv + epaccept
-    with open("conf/tor.guard.torrc", 'wb') as f: print >>f, relays + dirserv + epreject
-    with open("conf/tor.exit.torrc", 'wb') as f: print >>f, relays + dirserv + epaccept
-    with open("conf/tor.middle.torrc", 'wb') as f: print >>f, relays + dirserv + epreject
+    with open("conf/tor.exitguard.torrc", 'wb') as f: print >>f, relays + dirserv + epaccept + enablepayment
+    with open("conf/tor.guard.torrc", 'wb') as f: print >>f, relays + dirserv + epreject + enablepayment
+    with open("conf/tor.exit.torrc", 'wb') as f: print >>f, relays + dirserv + epaccept + enablepayment
+    with open("conf/tor.middle.torrc", 'wb') as f: print >>f, relays + dirserv + epreject + enablepayment
     if args.nbridges > 0:
         with open("conf/tor.bridge.torrc", 'wb') as f: print >>f, relays + epreject
-    with open("conf/tor.client.torrc", 'wb') as f: print >>f, clients
+    with open("conf/tor.clientnonprem.torrc", 'wb') as f: print >>f, clients
+    with open("conf/tor.clientpremium.torrc", 'wb') as f: print >>f, clients + enablepayment
     with open("conf/tor.browser.torrc", 'wb') as f: print >>f, torbrowser
     if args.nbridgeclients > 0:
         with open("conf/tor.bridgeclient.torrc", 'wb') as f: print >>f, clients + bridgeclients
-    with open("conf/tor.torperf.torrc", 'wb') as f: print >>f, clients + maxdirty + noguards
+    with open("conf/tor.torperfnonprem.torrc", 'wb') as f: print >>f, clients + maxdirty + noguards
+    with open("conf/tor.torperfnonpremium.torrc", 'wb') as f: print >>f, clients + maxdirty + noguards + enablepayment
+
+    # moneTor: write ledger and intermediary torrc files
+    with open("conf/tor.ledger.torrc", 'wb') as f: print >>f, authorities + epreject + ledger + enablepayment
+    with open("conf/tor.intermediary.torrc", 'wb') as f: print >>f, relays + dirserv + epreject + intermediary + enablepayment
+
     log("finished generating torrc files")
 
 def write_tgen_config_files(servernames):
