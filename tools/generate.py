@@ -16,7 +16,6 @@ INSTALLPREFIX="~/.shadow/"
 # distribution of CPU frequencies, in KHz
 CPUFREQS=["2200000", "2400000", "2600000", "2800000", "3000000", "3200000", "3400000"]
 
-
 # moneTor: intermediaries will be sampled at a minimum of this percentile of guard nodes
 INTERMEDIARYPERCENTILE = 75
 
@@ -526,7 +525,7 @@ def generate(args):
     # moneTor: intermediary relays
     i = 1
     for r in intermediaries_nodes:
-        name = "relayintermediary{0}".format(i)
+        name = "relayint{0}".format(i)
         os.makedirs(name)
         os.chdir(name)
         rc, fp = getfp(args, '../authgen.torrc', name)
@@ -579,7 +578,7 @@ def generate(args):
 
     i = 1
     while i <= nwebclientsnonprem:
-        name = "webclientnonprem{0}".format(i)
+        name = "webnonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.clientnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torwebclient.graphml.xml"
@@ -591,7 +590,7 @@ def generate(args):
 
     i = 1
     while i <= nbulkclientsnonprem:
-        name = "bulkclientnonprem{0}".format(i)
+        name = "bulknonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.clientnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torbulkclient.graphml.xml"
@@ -603,7 +602,7 @@ def generate(args):
 
     i = 1
     while i <= nperf50kclientsnonprem:
-        name = "perf50kclientnonprem{0}".format(i)
+        name = "perf50knonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.torperfnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf50kclient.graphml.xml"
@@ -615,7 +614,7 @@ def generate(args):
 
     i = 1
     while i <= nperf1mclientsnonprem:
-        name = "perf1mclientnonprem{0}".format(i)
+        name = "perf1mnonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.torperfnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf1mclient.graphml.xml"
@@ -627,7 +626,7 @@ def generate(args):
 
     i = 1
     while i <= nperf5mclientsnonprem:
-        name = "perf5mclientnonprem{0}".format(i)
+        name = "perf5mnonprem{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.torperfnonprem.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf5mclient.graphml.xml"
@@ -641,7 +640,7 @@ def generate(args):
 
     i = 1
     while i <= nwebclientspremium:
-        name = "webclientpremium{0}".format(i)
+        name = "webpremium{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.clientpremium.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torwebclient.graphml.xml"
@@ -653,7 +652,7 @@ def generate(args):
 
     i = 1
     while i <= nbulkclientspremium:
-        name = "bulkclientpremium{0}".format(i)
+        name = "bulkpremium{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.clientpremium.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torbulkclient.graphml.xml"
@@ -665,7 +664,7 @@ def generate(args):
 
     i = 1
     while i <= nperf50kclientspremium:
-        name = "perf50kclientpremium{0}".format(i)
+        name = "perf50kpremium{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.torperfpremium.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf50kclient.graphml.xml"
@@ -677,7 +676,7 @@ def generate(args):
 
     i = 1
     while i <= nperf1mclientspremium:
-        name = "perf1mclientpremium{0}".format(i)
+        name = "perf1mcpremium{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.torperfpremium.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf1mclient.graphml.xml"
@@ -689,7 +688,7 @@ def generate(args):
 
     i = 1
     while i <= nperf5mclientspremium:
-        name = "perf5mclientpremium{0}".format(i)
+        name = "perf5mpremium{0}".format(i)
         starttime = "{0}".format(int(round(clientStartTime)))
         torargs = "{0} -f conf/tor.torperfpremium.torrc".format(default_tor_args) # in bytes
         tgenargs = "conf/tgen.torperf5mclient.graphml.xml"
