@@ -1148,7 +1148,8 @@ CircuitPriorityHalflife 30\n\
 PathBiasUseThreshold 10000\n\
 PathBiasCircThreshold 10000\n\
 ControlPort 9051\n\
-MoneTorPublicMint 1\n'.format(auths_lines, auth_name_csv)
+MoneTorPublicMint 1\n\
+MoneTorPriorityMod 10.0\n'.format(auths_lines, auth_name_csv)
     clients = \
 'ORPort 0\n\
 DirPort 0\n\
