@@ -740,7 +740,7 @@ def generate(args):
 
         # kill time
         e = etree.Element("kill")
-        e.set("time", "3600")
+        e.set("time", "5400")
         root.insert(0, e)
 
         # all our hosts
