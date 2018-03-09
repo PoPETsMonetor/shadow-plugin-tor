@@ -280,11 +280,6 @@ def generate(args):
     n_exits = int(round(float(len(exits)) / float(len(relays)) * args.nrelays))
     n_middles = int(round(float(len(middles)) / float(len(relays)) * args.nrelays))
 
-    print "n_exitguards" + str(n_exitguards)
-    print "n_guards" + str(n_guards)
-    print "n_exits" + str(n_exits)
-    print "n_middles" + str(n_middles)
-
     exitguards_nodes = getRelays(exitguards, n_exitguards, geoentries, args.descriptors, args.extrainfos, validyear, validmonth)
     guards_nodes = getRelays(guards, n_guards, geoentries, args.descriptors, args.extrainfos, validyear, validmonth)
     exits_nodes = getRelays(exits, n_exits, geoentries, args.descriptors, args.extrainfos, validyear, validmonth)
