@@ -221,13 +221,9 @@ def main():
     args = ap.parse_args()
 
     totalclientf = args.fwebnonprem + args.fwebpremium + args.fbulknonprem + args.fbulkpremium
-    if totalclientf != 1.0:
+    if abs(totalclientf - 1.0) > 0.001:
         log("client fractions do not add to 1.0! please fix arguments...")
         return
-
-    # moneTor: make sure there are not more intermediaries than relays
-    if args.nintermediaries > args.nrelays:
-        log("more intermediaries than relays! please fix arguments...")
 
     # fixup paths from user
     args.prefix = os.path.abspath(os.path.expanduser(args.prefix))
@@ -279,10 +275,15 @@ def generate(args):
     geoentries = getGeoEntries(args.geoippath)
 
     # sample for the relays we'll use for our nodes
-    n_exitguards = int(float(len(exitguards)) / float(len(relays)) * args.nrelays)
-    n_guards = int(float(len(guards)) / float(len(relays)) * args.nrelays)
-    n_exits = int(float(len(exits)) / float(len(relays)) * args.nrelays)
-    n_middles = int(float(len(middles)) / float(len(relays)) * args.nrelays)
+    n_exitguards = int(round(float(len(exitguards)) / float(len(relays)) * args.nrelays))
+    n_guards = int(round(float(len(guards)) / float(len(relays)) * args.nrelays))
+    n_exits = int(round(float(len(exits)) / float(len(relays)) * args.nrelays))
+    n_middles = int(round(float(len(middles)) / float(len(relays)) * args.nrelays))
+
+    print "n_exitguards" + str(n_exitguards)
+    print "n_guards" + str(n_guards)
+    print "n_exits" + str(n_exits)
+    print "n_middles" + str(n_middles)
 
     exitguards_nodes = getRelays(exitguards, n_exitguards, geoentries, args.descriptors, args.extrainfos, validyear, validmonth)
     guards_nodes = getRelays(guards, n_guards, geoentries, args.descriptors, args.extrainfos, validyear, validmonth)
