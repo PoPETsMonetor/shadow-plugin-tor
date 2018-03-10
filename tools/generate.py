@@ -553,8 +553,8 @@ def generate(args):
     nperf1mclientspremium = int(args.nperf1mpremium)
     nperf5mclientspremium = int(args.nperf5mpremium)
 
-    # boot clients equally spread out between 15 and 25 minutes
-    secondsPerClient = 600.0 / (nbulkclientsnonprem +
+    # boot clients equally spread out between 15 and 30 minutes
+    secondsPerClient = 900.0 / (nbulkclientsnonprem +
                                 nwebclientsnonprem +
                                 nperf50kclientsnonprem +
                                 nperf1mclientsnonprem +
@@ -637,8 +637,8 @@ def generate(args):
 
     # moneTor: premium clients
 
-    # boot clients equally spread out between 15 and 25 minutes
-    secondsPerClient = 600.0 / (nbulkclientspremium +
+    # boot clients equally spread out between 15 and 30 minutes
+    secondsPerClient = 900.0 / (nbulkclientspremium +
                                 nwebclientspremium +
                                 nperf50kclientspremium +
                                 nperf1mclientspremium +
