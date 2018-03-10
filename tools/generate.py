@@ -18,6 +18,7 @@ CPUFREQS=["2200000", "2400000", "2600000", "2800000", "3000000", "3200000", "340
 
 # moneTor: intermediaries will be sampled at a minimum of this percentile of guard nodes
 INTERMEDIARYPERCENTILE = 75
+PRIORITYMOD = 2.0
 
 NRELAYS = 10
 NBRIDGES = 0
@@ -210,6 +211,8 @@ def main():
     ap.add_argument('--nservers', action="store", type=int, dest="nservers", help="number N of fileservers", metavar='N', default=NSERVERS)
     ap.add_argument('--geoippath', action="store", dest="geoippath", help="path to geoip file, needed to convert IPs to cluster codes", default=INSTALLPREFIX+"share/geoip")
 
+    ap.add_argument('--prioritymod', action="store", type=float, dest="prioritymod", help="amount by which to prioritize premium bandwidth purchasers", default=PRIORITYMOD)
+
     # positional args (required)
     ap.add_argument('alexa', action="store", type=str, help="path to an ALEXA file (produced with contrib/parsealexa.py)", metavar='ALEXA', default=None)
     ap.add_argument('consensus', action="store", type=str, help="path to a current Tor CONSENSUS file", metavar='CONSENSUS', default=None)
@@ -279,11 +282,6 @@ def generate(args):
     n_guards = int(round(float(len(guards)) / float(len(relays)) * args.nrelays))
     n_exits = int(round(float(len(exits)) / float(len(relays)) * args.nrelays))
     n_middles = int(round(float(len(middles)) / float(len(relays)) * args.nrelays))
-
-    print "n_exitguards" + str(n_exitguards)
-    print "n_guards" + str(n_guards)
-    print "n_exits" + str(n_exits)
-    print "n_middles" + str(n_middles)
 
     exitguards_nodes = getRelays(exitguards, n_exitguards, geoentries, args.descriptors, args.extrainfos, validyear, validmonth)
     guards_nodes = getRelays(guards, n_guards, geoentries, args.descriptors, args.extrainfos, validyear, validmonth)
@@ -1150,7 +1148,7 @@ PathBiasUseThreshold 10000\n\
 PathBiasCircThreshold 10000\n\
 ControlPort 9051\n\
 MoneTorPublicMint 1\n\
-MoneTorPriorityMod 10.0\n'.format(auths_lines, auth_name_csv)
+MoneTorPriorityMod {2}\n'.format(auths_lines, auth_name_csv, args.prioritymod)
     clients = \
 'ORPort 0\n\
 DirPort 0\n\
