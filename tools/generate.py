@@ -554,11 +554,11 @@ def generate(args):
     nperf5mclientspremium = int(args.nperf5mpremium)
 
     # boot clients equally spread out between 15 and 25 minutes
-    secondsPerClient = 600.0 / (nbulkclientsnonprem + nbulkclientspremium +
-                                nwebclientsnonprem + nwebclientspremium +
-                                nperf50kclientsnonprem + nperf50kclientspremium +
-                                nperf1mclientsnonprem + nperf1mclientspremium +
-                                nperf5mclientsnonprem + nperf5mclientspremium)
+    secondsPerClient = 600.0 / (nbulkclientsnonprem +
+                                nwebclientsnonprem +
+                                nperf50kclientsnonprem +
+                                nperf1mclientsnonprem +
+                                nperf5mclientsnonprem)
     clientStartTime = 900.0 # minute 15
 
     # clients are separated into bulk/web downloaders who always download their file type
@@ -636,6 +636,14 @@ def generate(args):
         i += 1
 
     # moneTor: premium clients
+
+    # boot clients equally spread out between 15 and 25 minutes
+    secondsPerClient = 600.0 / (nbulkclientspremium +
+                                nwebclientspremium +
+                                nperf50kclientspremium +
+                                nperf1mclientspremium +
+                                nperf5mclientpremium)
+    clientStartTime = 900.0 # minute 15
 
     i = 1
     while i <= nwebclientspremium:
