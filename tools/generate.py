@@ -642,7 +642,7 @@ def generate(args):
                                 nwebclientspremium +
                                 nperf50kclientspremium +
                                 nperf1mclientspremium +
-                                nperf5mclientpremium)
+                                nperf5mclientspremium)
     clientStartTime = 900.0 # minute 15
 
     i = 1
