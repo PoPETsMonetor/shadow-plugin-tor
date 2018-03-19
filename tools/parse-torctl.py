@@ -52,7 +52,7 @@ inline xz decompression""",
 re.search to find tgen log file names in the search path""", 
         action="append", dest="patterns",
         metavar="PATTERN",
-        default=["torctl.*\.log"])
+        default=[])
 
     parser.add_argument('-m', '--multiproc',
         help="""Enable multiprocessing with N worker process, use '0'
