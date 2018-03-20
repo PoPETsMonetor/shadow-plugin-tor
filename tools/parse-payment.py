@@ -124,9 +124,10 @@ def process_payment_log(filename):
 
     name = filename.split('/')[-1].split('-')[1].split('.')[0]
 
-    d = {'direct': {}, 'intermediary': {}}
-    d['direct'] = {'numpayments': {}, 'lifetime': {}, 'ttpayment': {}, 'ttclose': {}}
-    d['intermediary'] = {'numpayments': {}, 'lifetime': {}, 'ttpayment': {}, 'ttclose': {}}
+    d = {'guard': {}, 'middle': {}, 'exit': {}}
+    d['guard'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {}, 'ttclose': {}}
+    d['middle'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {}, 'ttclose': {}}
+    d['exit'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {}, 'ttclose': {}}
 
     for line in source:
         if re.search('mt_log_nanochannel', line) is not None:
@@ -136,20 +137,22 @@ def process_payment_log(filename):
                 second = int(parsed['time'])
                 chntype = parsed['type']
 
-
                 if second not in d[chntype]['numpayments']:
                     d[chntype]['numpayments'][second] = []
                 if second not in d[chntype]['lifetime']:
                     d[chntype]['lifetime'][second] = []
+                if second not in d[chntype]['ttestablish']:
+                    d[chntype]['ttestablish'][second] = []
                 if second not in d[chntype]['ttpayment']:
                     d[chntype]['ttpayment'][second] = []
                 if second not in d[chntype]['ttclose']:
                     d[chntype]['ttclose'][second] = []
 
                 d[chntype]['numpayments'][second].append(int(parsed['numpayments']))
-                d[chntype]['lifetime'][second].append(int(parsed['lifetime']))
-                d[chntype]['ttpayment'][second].append(int(parsed['ttpayment']))
-                d[chntype]['ttclose'][second].append(int(parsed['ttclose']))
+                d[chntype]['lifetime'][second].append(float(parsed['lifetime']))
+                d[chntype]['ttestablish'][second].append(float(parsed['ttestablish']))
+                d[chntype]['ttpayment'][second].append(float(parsed['ttpayment']))
+                d[chntype]['ttclose'][second].append(float(parsed['ttclose']))
 
             except: continue # data format error
 
