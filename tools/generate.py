@@ -651,6 +651,8 @@ def generate(args):
 
     secondsPerClient = 900.0 / total_premium if total_premium else 0
 
+    clientStartTime = 900.0 # minute 15
+
 
     i = 1
     while i <= nwebclientspremium:
