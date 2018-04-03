@@ -19,6 +19,7 @@ CPUFREQS=["2200000", "2400000", "2600000", "2800000", "3000000", "3200000", "340
 # moneTor: intermediaries will be sampled at a minimum of this percentile of guard nodes
 INTERMEDIARYPERCENTILE = 75
 PRIORITYMOD = 2.0
+FLOWMOD = 2.0
 
 NRELAYS = 10
 NBRIDGES = 0
@@ -211,7 +212,8 @@ def main():
     ap.add_argument('--nservers', action="store", type=int, dest="nservers", help="number N of fileservers", metavar='N', default=NSERVERS)
     ap.add_argument('--geoippath', action="store", dest="geoippath", help="path to geoip file, needed to convert IPs to cluster codes", default=INSTALLPREFIX+"share/geoip")
 
-    ap.add_argument('--prioritymod', action="store", type=float, dest="prioritymod", help="amount by which to prioritize premium bandwidth purchasers", default=PRIORITYMOD)
+    ap.add_argument('--prioritymod', action="store", type=float, dest="prioritymod", help="amount by which to prioritize premium traffic scheduling", default=PRIORITYMOD)
+    ap.add_argument('--flowmod', action="store", type=float, dest="flowmod", help="amount by which to prioritize premium traffic flow control", default=FLOWMOD)
 
     # positional args (required)
     ap.add_argument('alexa', action="store", type=str, help="path to an ALEXA file (produced with contrib/parsealexa.py)", metavar='ALEXA', default=None)
@@ -1161,7 +1163,8 @@ PathBiasUseThreshold 10000\n\
 PathBiasCircThreshold 10000\n\
 ControlPort 9051\n\
 MoneTorPublicMint 1\n\
-MoneTorPriorityMod {2}\n'.format(auths_lines, auth_name_csv, args.prioritymod)
+MoneTorPriorityMod {2}\n\
+MoneTorFlowMod {3}\n'.format(auths_lines, auth_name_csv, args.prioritymod, args.flowmod)
     clients = \
 'ORPort 0\n\
 DirPort 0\n\
