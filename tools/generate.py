@@ -586,7 +586,7 @@ def generate(args):
         clientStartTime += secondsPerClient
         i += 1
 
-    secondsPerClient = 900.0 / nbulkclientsnonprem if sbulkclientsnonprem else 0
+    secondsPerClient = 900.0 / nbulkclientsnonprem if nbulkclientsnonprem else 0
     clientStartTime = 900.0 # minute 15
 
     i = 1
@@ -664,7 +664,7 @@ def generate(args):
         clientStartTime += secondsPerClient
         i += 1
 
-    secondsPerClient = 900.0 / nbulkclientsnonprem if sbulkclientsnonprem else 0
+    secondsPerClient = 900.0 / nbulkclientsnonprem if nbulkclientsnonprem else 0
     clientStartTime = 900.0 # minute 15
 
     i = 1
