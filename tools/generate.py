@@ -556,15 +556,6 @@ def generate(args):
     nperf5mclientspremium = int(args.nperf5mpremium)
 
     # boot clients equally spread out between 15 and 30 minutes
-    total_nonprem = (nbulkclientsnonprem +
-                     nwebclientsnonprem +
-                     nperf50kclientsnonprem +
-                     nperf1mclientsnonprem +
-                     nperf5mclientsnonprem)
-
-    secondsPerClient = 900.0 / total_nonprem if total_nonprem else 0
-
-    clientStartTime = 900.0 # minute 15
 
     # clients are separated into bulk/web downloaders who always download their file type
     i = 1
@@ -580,6 +571,9 @@ def generate(args):
 
     # moneTor: non-premium clients
 
+    secondsPerClient = 900.0 / nwebclientsnonprem if nwebclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
+
     i = 1
     while i <= nwebclientsnonprem:
         name = "webclientnp{0}".format(i)
@@ -591,6 +585,9 @@ def generate(args):
 
         clientStartTime += secondsPerClient
         i += 1
+
+    secondsPerClient = 900.0 / nbulkclientsnonprem if sbulkclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
 
     i = 1
     while i <= nbulkclientsnonprem:
@@ -604,6 +601,10 @@ def generate(args):
         clientStartTime += secondsPerClient
         i += 1
 
+
+    secondsPerClient = 900.0 / nperf50kclientsnonprem if nperf50kclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
+
     i = 1
     while i <= nperf50kclientsnonprem:
         name = "perf50kclientnp{0}".format(i)
@@ -616,6 +617,9 @@ def generate(args):
         clientStartTime += secondsPerClient
         i += 1
 
+    secondsPerClient = 900.0 / nperf1mclientsnonprem if nperf1mclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
+
     i = 1
     while i <= nperf1mclientsnonprem:
         name = "perf1mclientnp{0}".format(i)
@@ -627,6 +631,9 @@ def generate(args):
 
         clientStartTime += secondsPerClient
         i += 1
+
+    secondsPerClient = 900.0 / nperf5mclientsnonprem if nperf5mclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
 
     i = 1
     while i <= nperf5mclientsnonprem:
@@ -642,17 +649,8 @@ def generate(args):
 
     # moneTor: premium clients
 
-    # boot clients equally spread out between 15 and 30 minutes
-    total_premium = (nbulkclientspremium +
-                     nwebclientspremium +
-                     nperf50kclientspremium +
-                     nperf1mclientspremium +
-                     nperf5mclientspremium)
-
-    secondsPerClient = 900.0 / total_premium if total_premium else 0
-
+    secondsPerClient = 900.0 / nwebclientsnonprem if nwebclientsnonprem else 0
     clientStartTime = 900.0 # minute 15
-
 
     i = 1
     while i <= nwebclientspremium:
@@ -666,6 +664,9 @@ def generate(args):
         clientStartTime += secondsPerClient
         i += 1
 
+    secondsPerClient = 900.0 / nbulkclientsnonprem if sbulkclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
+
     i = 1
     while i <= nbulkclientspremium:
         name = "bulkclientpr{0}".format(i)
@@ -677,6 +678,9 @@ def generate(args):
 
         clientStartTime += secondsPerClient
         i += 1
+
+    secondsPerClient = 900.0 / nperf50kclientsnonprem if nperf50kclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
 
     i = 1
     while i <= nperf50kclientspremium:
@@ -690,6 +694,9 @@ def generate(args):
         clientStartTime += secondsPerClient
         i += 1
 
+    secondsPerClient = 900.0 / nperf1mclientsnonprem if nperf1mclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
+
     i = 1
     while i <= nperf1mclientspremium:
         name = "perf1mclientpr{0}".format(i)
@@ -701,6 +708,9 @@ def generate(args):
 
         clientStartTime += secondsPerClient
         i += 1
+
+    secondsPerClient = 900.0 / nperf5mclientsnonprem if nperf5mclientsnonprem else 0
+    clientStartTime = 900.0 # minute 15
 
     i = 1
     while i <= nperf5mclientspremium:
