@@ -354,7 +354,7 @@ def generate(args):
     os.makedirs("torflowauthority")
     v3bwfile = open("torflowauthority/v3bw.init.consensus", "wb")
     os.symlink("v3bw.init.consensus", "torflowauthority/v3bw")
-    v3bwfile.write("1\n")
+    v3bwfile.write("946684801\n")
 
     guardnames, guardfps = [], []
     exitnames, exitfps = [], []
