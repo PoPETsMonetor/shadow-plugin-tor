@@ -125,9 +125,12 @@ def process_payment_log(filename):
     name = filename.split('/')[-1].split('-')[1].split('.')[0]
 
     d = {'guard': {}, 'middle': {}, 'exit': {}}
-    d['guard'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {}, 'ttclose': {}}
-    d['middle'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {}, 'ttclose': {}}
-    d['exit'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {}, 'ttclose': {}}
+    d['guard'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {},
+                  'ttpaysuccess': {}, 'ttclose': {}}
+    d['middle'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {},
+                  'ttpaysuccess': {}, 'ttclose': {}}
+    d['exit'] = {'numpayments': {}, 'lifetime': {}, 'ttestablish': {}, 'ttpayment': {},
+                  'ttpaysuccess': {}, 'ttclose': {}}
 
     for line in source:
         if re.search('mt_log_nanochannel', line) is not None:
@@ -145,6 +148,8 @@ def process_payment_log(filename):
                     d[chntype]['ttestablish'][second] = []
                 if second not in d[chntype]['ttpayment']:
                     d[chntype]['ttpayment'][second] = []
+                if second not in d[chntype]['ttpaysuccess']:
+                    d[chntype]['ttpaysuccess'][second] = []
                 if second not in d[chntype]['ttclose']:
                     d[chntype]['ttclose'][second] = []
 
@@ -152,6 +157,7 @@ def process_payment_log(filename):
                 d[chntype]['lifetime'][second].append(float(parsed['lifetime']))
                 d[chntype]['ttestablish'][second].append(float(parsed['ttestablish']))
                 d[chntype]['ttpayment'][second].append(float(parsed['ttpayment']))
+                d[chntype]['ttpaysuccess'][second].append(float(parsed['ttpaysuccess']))
                 d[chntype]['ttclose'][second].append(float(parsed['ttclose']))
 
             except: continue # data format error
