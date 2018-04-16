@@ -18,8 +18,8 @@ CPUFREQS=["2200000", "2400000", "2600000", "2800000", "3000000", "3200000", "340
 
 # moneTor: intermediaries will be sampled at a minimum of this percentile of guard nodes
 INTERMEDIARYPERCENTILE = 75
-PRIORITYMOD = 2.0
-FLOWMOD = 2.0
+PRIORITYMOD = 1.0
+FLOWMOD = 0.0
 
 NRELAYS = 10
 NBRIDGES = 0
